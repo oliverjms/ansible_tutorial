@@ -4,7 +4,7 @@
   become: true
   tasks:
 
-  - name: install apache2/httpd package
+  - name: remove apache2/httpd package
     dnf:
       name: httpd
-      state: latest
+      state: absent
