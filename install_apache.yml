@@ -5,21 +5,12 @@
   tasks:
 
 
-  - name: update repository index
+  - name: install apache/httpd and php packages for CentOS servers
     dnf:
+      name: 
+        - httpd
+        - php
+      state: latest
       update_cache: yes
     when: ansible_distribution == "CentOS"
 
-
-  - name: install apache2/httpd package
-    dnf:
-      name: httpd
-      state: latest
-    when: ansible_distribution == "CentOS"
-
-
-  - name: add php support for apache
-    dnf:
-      name: php
-      state: latest
-    when: ansible_distribution == "CentOS"
