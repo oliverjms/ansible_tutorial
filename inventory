@@ -1,2 +1,6 @@
+[web_servers]
 olivertest01@192.168.92.132
+
+[db_servers]
 olivertest02@192.168.92.133
+
