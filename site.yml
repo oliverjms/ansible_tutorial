@@ -4,19 +4,35 @@
   become: true
   pre_tasks:
 
-  - name: install updates (CentOS)
+  - name: udpate repo cache (CentOS)
     tags: always
     dnf:
-      update_only: yes
       update_cache: yes
+    changed_when: false
     when: ansible_distribution == "CentOS"
 
-  - name: install updates (Ubuntu)
+  - name: udpate repo cache (Ubuntu)
     tags: always
     apt:
-      upgrade: dist
       update_cache: yes
+    changed_when: false
     when: ansible_distribution == "Ubuntu"
+
+
+
+
+
+- hosts: all
+  become: true
+  tasks:
+  
+  - name: add ssh key for david
+    tags: always
+    authorized_key:
+      user: david
+      key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILlo1w1sVinYpsBOIetsVJQ1gkxoqyQ6YAUmmXz2+NgW ansible"
+         
+
 
 
 
@@ -38,6 +54,9 @@
       group: root
 
 
+
+
+
 - hosts: web_servers
   become: true
   tasks:
@@ -51,6 +70,14 @@
       state: latest
     when: ansible_distribution == "CentOS"
 
+  - name: start httpd service (CentOS)
+    tags: apache,centos,httpd
+    service:
+      name: httpd
+      state: started
+      enabled: yes
+    when: ansible_distribution == "CentOS"
+
   - name: install apache and php for Ubuntu servers
     tags: apache,apache2,ubuntu
     apt:
@@ -60,6 +87,22 @@
       state: latest
     when: ansible_distribution == "Ubuntu"
 
+  - name: change email address for admin
+    tags: apache,centos,httpd
+    lineinfile: 
+      path: /etc/httpd/conf/httpd.conf
+      regexp: '^ServerAdmin'
+      line: ServerAdmin somebody@somewhere.net
+    when: ansible_distribution == "CentOS"
+    register: httpd
+
+  - name: restart httpd (CentOS)
+    tags: apache,centos,httpd
+    service:
+      name: httpd
+      state: restarted
+    when: httpd.changed
+
   - name: copy default html files for site
     tags: apache,apache2,httpd
     copy:
@@ -68,6 +111,8 @@
       owner: root
       group: root
       mode: 0644
+
+
 
 
 
@@ -82,11 +127,9 @@
       state: latest
     when: ansible_distribution == "CentOS"
 
-
   - name: install mariadb package (Ubuntu)
     tags: db,mariadb,ubuntu
     apt:
       name: mariadb-server
       state: latest
     when: ansible_distribution == "Ubuntu"
-
